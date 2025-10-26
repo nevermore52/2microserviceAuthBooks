@@ -54,7 +54,6 @@ func authMiddleware(next http.Handler) http.Handler {
 
 	authHeader := r.Header.Get("Authorization")
 	token := strings.TrimPrefix(authHeader, "Bearer ")
-	fmt.Println(token)
 	if token == authHeader {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("Неверный токен нету префикса Bearer"))
