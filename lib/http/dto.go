@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"time"
+
+	"github.com/golang-jwt/jwt/v4"
 )
 type BookDTO struct {
 	Title		string
@@ -60,4 +62,9 @@ type AuthClient struct {
 type VerifyResponse struct {
    		Valid  bool   `json:"valid"`
     	UserName string `json:"user_name"`
-	}
+}
+
+type Claims struct {
+	Username string `json:"username"`
+	jwt.StandardClaims
+}

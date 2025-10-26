@@ -1,10 +1,12 @@
 package http
 
 import (
-	"bytes"
-	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
 	"strings"
+
+	"github.com/golang-jwt/jwt/v4"
 )
 
 func NewAuthClient() *AuthClient{
@@ -13,51 +15,59 @@ func NewAuthClient() *AuthClient{
 		}
 	}
 
-func (c *AuthClient) VerifyToken(Token string) (bool, string, error) {
-	requestBody, err := json.Marshal(map[string]string{"Token": Token})
+func (c *AuthClient) VerifyToken(tokenString string) (*Claims, bool, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error){
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("неожиданный метод подписи: %v", token.Header["alg"])
+		}
+		return []byte(os.Getenv("JWT_SECRET")), nil
+	})
 	if err != nil {
-		panic(err)
+		return nil, false, err
 	}
 
-	resp, err := http.Post(c.BaseURL+"/auth/verify", "application/json", bytes.NewBuffer(requestBody))
-	if err != nil {
-		return false, "", err
+	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
+		return claims, token.Valid, nil
 	}
-	defer resp.Body.Close()
 
+	return nil, false, fmt.Errorf("инвалид токен")
 
-
-	var result VerifyResponse
-	json.NewDecoder(resp.Body).Decode(&result)
-	return result.Valid, result.UserName, nil
 }
 
-func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
+func authMiddleware(next http.Handler) http.Handler {
 	authClient := NewAuthClient()
 
-	return func(w http.ResponseWriter, r *http.Request){
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
 		if r.URL.Path == "/login" {
-			next(w,r)
+			next.ServeHTTP(w,r)
+			return
+		}
+		if r.URL.Path == "/register" {
+			next.ServeHTTP(w,r)
+			return
+		}
+		if r.URL.Path == "/logout" {
+			next.ServeHTTP(w,r)
 			return
 		}
 	
 
 	authHeader := r.Header.Get("Authorization")
 	token := strings.TrimPrefix(authHeader, "Bearer ")
+	fmt.Println(token)
 	if token == authHeader {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("Неверный токен нету префикса Bearer"))
 		return
 	}
 
-	valid, username, err := authClient.VerifyToken(token)
+	_, valid, err := authClient.VerifyToken(token)
 	if err != nil || !valid {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("Неверный токен"))
 		return
 	}
 
-	r.Header.Set("X-User-Name", username)
-	next(w, r)
-	}
+	next.ServeHTTP(w, r)
+	})
 }

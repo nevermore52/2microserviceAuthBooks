@@ -9,4 +9,7 @@ require (
 
 require github.com/joho/godotenv v1.5.1
 
-require github.com/jmoiron/sqlx v1.4.0
+require (
+	github.com/golang-jwt/jwt/v4 v4.5.2
+	github.com/jmoiron/sqlx v1.4.0
+)
