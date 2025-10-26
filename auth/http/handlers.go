@@ -117,9 +117,9 @@ func (h *HTTPHandlers) HandleLogUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *HTTPHandlers) HandleVerify(w http.ResponseWriter, r *http.Request){
-	token := Token{}
-	json.NewDecoder(r.Body).Decode(&token)
-	if _, err := ValidateToken(token.Token); err != nil {
+	authHeader := r.Header.Get("Authorization")
+	token := strings.TrimPrefix(authHeader, "Bearer ")
+	if _, err := ValidateToken(token); err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
