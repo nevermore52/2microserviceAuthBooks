@@ -1,29 +1,3 @@
-/env:
-DB_PASSWORD=
-DB_USERNAME=
-DB_HOST=
-DB_PORT=
-DB_NAME=
-DB_URI=
-APP_PORT=
-AUTH_PORT=
-
-/auth/env:
-DB_PASSWORD=
-DB_USERNAME=
-DB_HOST=
-DB_PORT=
-DB_NAME=
-DB_URI=
-JWT_SECRET=
-APP_PORT=
-
-/lib/env:
-DB_PASSWORD=
-DB_USERNAME=
-DB_HOST=
-DB_PORT=
-DB_NAME=
-DB_URI=
-JWT_SECRET=
-APP_PORT=
+Мой учебный rest api проект, по типу to-do листа. Можно добавлять книги в библеотеку, удалять, обновлять. Так же можно добавлять авторов, если при добавлении книги указанный автор не будет обнаружен в таблице - книга не добавится.
+Все данные хранятся в бд Postgresql
+Добавлен микросервис авторизации с jwt токенами, с отдельной бд.
